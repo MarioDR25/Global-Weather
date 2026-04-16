@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect } from "react";
+import { useMemo } from "react";
 import { useTexture } from "@react-three/drei";
 import { EARTH_RADIUS } from "./constants";
 import * as THREE from "three";
@@ -12,17 +12,33 @@ export function Earth(props) {
     "/textures/specular_map.png"
   ]);
 
-  useLayoutEffect(() => {
-    colorMap.colorSpace = THREE.SRGBColorSpace;
-    normalMap.colorSpace = THREE.NoColorSpace;
-    specularMap.colorSpace = THREE.NoColorSpace;
+  const [preparedColorMap, preparedNormalMap, preparedSpecularMap] = useMemo(() => {
+    const nextColorMap = colorMap.clone();
+    const nextNormalMap = normalMap.clone();
+    const nextSpecularMap = specularMap.clone();
+
+    nextColorMap.colorSpace = THREE.SRGBColorSpace;
+    nextNormalMap.colorSpace = THREE.NoColorSpace;
+    nextSpecularMap.colorSpace = THREE.NoColorSpace;
+
+    nextColorMap.needsUpdate = true;
+    nextNormalMap.needsUpdate = true;
+    nextSpecularMap.needsUpdate = true;
+
+    return [nextColorMap, nextNormalMap, nextSpecularMap];
   }, [colorMap, normalMap, specularMap]);
 
   return (
     <group>
       <mesh {...props}>
         <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
-        <meshStandardMaterial map={colorMap} normalMap={normalMap} roughnessMap={specularMap} metalness={0} roughness={1} />
+        <meshStandardMaterial
+          map={preparedColorMap}
+          normalMap={preparedNormalMap}
+          roughnessMap={preparedSpecularMap}
+          metalness={0}
+          roughness={1}
+        />
       </mesh>
 
     </group>
